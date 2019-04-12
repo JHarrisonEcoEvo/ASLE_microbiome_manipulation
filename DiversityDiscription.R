@@ -129,14 +129,29 @@ dim(dat)
 
 dat$samps 
 
+treated <- grep("treated*",dat$treament)
+untreated <- grep("untreated*",dat$treament)
+
 #inoculum samples
 dat[187:190,]
 
 colSums(dat[187:190,2:22])
 length(which(colSums(dat[187:190,2:22]) > 0 ))
+colSums(dat[colSums(dat[187:190,2:22]) > 0,2:22 ])
 
+names(which(colSums(dat[187:190,2:22]) > 0 ))
+
+colSums(dat[treated,names(dat) %in% names(which(colSums(dat[187:190,2:22]) > 0 ))])
+colSums(dat[untreated,names(dat) %in% names(which(colSums(dat[187:190,2:22]) > 0 ))])
+
+#richness in either group
+length(which(colSums(dat[treated,2:22], na.rm=T) > 0))
+length(which(colSums(dat[untreated,2:22], na.rm=T) > 0))
 colSums(dat[1:186,2:22])
 
+which(colSums(dat[187:190,2:22]) > 0 )
+which(colSums(dat[treated,2:22], na.rm=T) > 0)
+which(colSums(dat[untreated,2:22], na.rm=T) > 0)
 tax[which(tax$V1 == "Otu11"),]
 
 #for bacteria
@@ -145,18 +160,43 @@ tax[which(tax$V1 == "Otu11"),]
 dat <- read.csv("./data/bacteriaOTUtableZotusALLSEQS.csv")
 dat$samps <- as.character(dat$samps)
 
+#Import treatment information
+samps <- read.csv("./data/planting_order.csv")
+dim(dat)
+
+#Merge datasets
+dat <- merge(dat, 
+             samps,
+             by.x = "samps",
+             by.y = "rns",
+             all.x = T)
+
 germies <- dat[grep("Inoculum", dat$samps),]
 
-colSums(germies[,2:length(germies)])
-length(which(colSums(germies[,2:length(germies)]) > 0 ))
+colSums(germies[,2:114])
+length(which(colSums(germies[,2:114]) > 0 ))
 
 insamples <- dat[-grep("[A-Za-z]", dat$samps),]
 insamples <- insamples[1:172,]
 
-colSums(insamples[,2:length(insamples)]) 
+treated <- grep("treated*",dat$treament)
+untreated <- grep("untreated*",dat$treament)
 
-x <- cbind(colSums(germies[,2:length(germies)]),
-      colSums(insamples[,2:length(insamples)]))
+cbind(colSums(insamples[treated,2:114], na.rm=T),
+colSums(insamples[untreated,2:114], na.rm=T))
+
+length(which(colSums(insamples[treated,2:114], na.rm=T) > 0))
+length(which(colSums(insamples[untreated,2:114], na.rm=T) > 0))
+
+x <- cbind(colSums(germies[,2:114]),
+      colSums(insamples[,2:114]))
+
+z <- cbind(colSums(insamples[treated, 2:114], na.rm=T),
+colSums(insamples[untreated, 2:114], na.rm=T))
+
+z <- z[rownames(z) %in% names(which(colSums(germies[,2:114])>0)),]
+length(which(z[,1] > 0 ))
+length(which(names(which(colSums(insamples[treated, 2:114], na.rm=T) > 0 )) %in% names(which(colSums(germies[,2:114])>0))))
 
 x[which(x[,1] > 0 ), 1] <- 1
 x[which(x[,2] > 0 ), 2] <- 1
